@@ -1,3 +1,4 @@
+import ctypes
 import sys
 import time
 
@@ -152,10 +153,10 @@ class TMainWindow(QMainWindow):
         if progress == 100:
             self.label_finished.setText("Backup terminato con successo")
 
-    def error_dialog(self, error_msg: str):
+    def error_dialog(self, error_msg: str, offset: tuple | None = None):
         errmsg = TExceptionDialog.TExceptionDialog(error_msg + "\n"
                                                    "Impossibile trovare i percorsi di cui effettuare il backup, "
-                                                   "assicurarsi di aver selezionato il NAS correttamente.")
+                                                   "assicurarsi di aver selezionato il NAS correttamente.", offset)
         errmsg.exec()
         self.btn_create_backup.setEnabled(True)
 
@@ -163,7 +164,7 @@ class TMainWindow(QMainWindow):
 class Backup(QObject):
     finished = pyqtSignal()
     progress = pyqtSignal(int)
-    error = pyqtSignal(str)
+    error = pyqtSignal(str, tuple)
 
     def __init__(self, drive_letter: str, nas_letter: str) -> None:
         super().__init__()
@@ -174,14 +175,15 @@ class Backup(QObject):
         try:
             backup.create_backup(self.drive_letter, self.nas_letter)
         except PermissionError as e:
-            self.error.emit(repr(e))
+            time.sleep(0.2)
+            self.error.emit(repr(e).split("(")[0] + ": " + repr(e).split("'")[1] + "\n", (50, 50))
         self.finished.emit()
 
     def update_progress_bar(self):
         try:
             total_data = get_size.nas_size(self.nas_letter)
         except FileNotFoundError as e:
-            self.error.emit(repr(e))
+            self.error.emit(repr(e).split("(")[0] + ": " + repr(e).split("'")[1] + "\n", (0, 0))
             self.finished.emit()
             return
         while True:
@@ -192,6 +194,10 @@ class Backup(QObject):
                 print("ended")
                 break
 
+
+appid = 'backupNAS.1.0.0'
+if sys.platform == "cygwin" or sys.platform == "win32":
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(appid)
 
 app = QApplication(sys.argv)
 window = TMainWindow()

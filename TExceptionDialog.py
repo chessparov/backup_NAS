@@ -6,9 +6,9 @@ import temp_path
 
 class TExceptionDialog(QDialog):
 
-    def __init__(self, exception: str):
+    def __init__(self, exception: str, offset: tuple | None = None):
         super().__init__()
-        self.setGeometry(550, 350, 200, 120)
+        self.setGeometry(550 + offset[0], 350 + offset[1], 200, 175)
         self.setWindowIcon(QIcon(temp_path.resource_path('assets\\Exception_x.png')))
         self.setWindowTitle('Errore')
         self.setFont(QFont("Segoe UI", 11))
