@@ -5,7 +5,6 @@ from PyQt5 import QtCore
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt, QThread, QObject, pyqtSignal
-from django.core.management import color_style
 
 import TExceptionDialog
 import backup
@@ -39,7 +38,7 @@ class TMainWindow(QMainWindow):
         self.setCentralWidget(self.widget)
 
     def create_background(self):
-        pixmap = QPixmap(temp_path.resource_path(r'assets/ethernet.jpg'))
+        pixmap = QPixmap(temp_path.resource_path(r'assets/wall_1.jpg'))
 
         new_pix = QPixmap(pixmap.size())
         overlay_color = QColor(245, 245, 255)
@@ -154,7 +153,9 @@ class TMainWindow(QMainWindow):
             self.label_finished.setText("Backup terminato con successo")
 
     def error_dialog(self, error_msg: str):
-        errmsg = TExceptionDialog.TExceptionDialog(error_msg)
+        errmsg = TExceptionDialog.TExceptionDialog(error_msg + "\n"
+                                                   "Impossibile trovare i percorsi di cui effettuare il backup, "
+                                                   "assicurarsi di aver selezionato il NAS correttamente.")
         errmsg.exec()
         self.btn_create_backup.setEnabled(True)
 
@@ -172,9 +173,8 @@ class Backup(QObject):
     def run(self):
         try:
             backup.create_backup(self.drive_letter, self.nas_letter)
-        except FileNotFoundError as e:
+        except PermissionError as e:
             self.error.emit(repr(e))
-            return
         self.finished.emit()
 
     def update_progress_bar(self):
@@ -182,6 +182,7 @@ class Backup(QObject):
             total_data = get_size.nas_size(self.nas_letter)
         except FileNotFoundError as e:
             self.error.emit(repr(e))
+            self.finished.emit()
             return
         while True:
             time.sleep(1)

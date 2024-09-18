@@ -13,13 +13,13 @@ def folder_size(path='.'):
 
 
 def nas_size(nas_letter: str):
-
     total = 0
     target_dirs = [
-        # nas_letter + ":\\" + "Documenti",
-                   nas_letter + ":\\" + "Immagini",
-    #                nas_letter + ":\\" + "Video"
-                   ]
+        nas_letter + ":\\" + "Documenti",
+        nas_letter + ":\\" + "Immagini",
+        nas_letter + ":\\" + "Video",
+        nas_letter + ":\\" + "Programmi"
+    ]
     for directory in target_dirs:
         total += folder_size(directory)
 
@@ -27,7 +27,6 @@ def nas_size(nas_letter: str):
 
 
 def disk_size(drive_letter: str):
-
     today_date = datetime.today().date()
     target_dir = drive_letter + r":\Backup_" + today_date.strftime('%d_%m_%Y')
     total = folder_size(target_dir)
